@@ -18,17 +18,17 @@ class FirstNet(nn.Module):
             # param 1 - num of input channel
             # param 2 - num of output channel
             # param 3 - kernel_size - filter size 5*5
-            nn.Conv2d(1, 32, kernel_size=5, stride=1, padding=2),
+            nn.Conv2d(1, 10, kernel_size=5, stride=1, padding=2),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
         self.layer2 = nn.Sequential(
-            nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=2),
+            nn.Conv2d(10, 20, kernel_size=5, stride=1, padding=2),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
         self.drop_out = nn.Dropout()
         # to create a fully connected layer
         # first layer will be of size 64,000 nodes and will connect to the second layer of 1000 nodes
-        self.fc1 = nn.Linear(64000, 1000)
+        self.fc1 = nn.Linear(20000, 1000)
         # second layer will be of size 1000 nodes and will connect to the output layer of 30 nodes - num of classes
         self.fc2 = nn.Linear(1000, num_classes)
 
@@ -42,6 +42,7 @@ class FirstNet(nn.Module):
         return out
 
     def train_data(self, model, optimizer, criterion, train_loader):
+        model.train()
         # Train the model
         total_step = len(train_loader)
         loss_list = []
@@ -92,6 +93,16 @@ class FirstNet(nn.Module):
     #     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     #     model.train_data(model, optimizer, criterion, train_loader)
 
+    def write_to_file(self,test_x, model):
+        file = open("test_y", "w")
+        for images, labels in test_x:
+            outputs = model(images)
+            _, y_hat = torch.max(outputs.data, 1)
+            #file.write( example + ','+ str(y_hat) + '\n')
+        file.close()
+
+
+
 
 if __name__ == "__main__":
     dataset = GCommandLoader('./train')
@@ -107,6 +118,7 @@ if __name__ == "__main__":
         num_workers=20, pin_memory=True, sampler=None)
 
     model = FirstNet()
+    # model.write_to_file(valid_loader, model)
     # Loss and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
